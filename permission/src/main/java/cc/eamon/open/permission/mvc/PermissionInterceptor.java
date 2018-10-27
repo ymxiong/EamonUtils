@@ -63,19 +63,18 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
                     if (isClzAnnotation){
                         pc = clazz.getAnnotation(Permission.class);
-                        methodPermissionName = pc.value().toLowerCase();
+
                     }else {
                         return true;
                     }
 
-                    methodPermissionName += "_";
 
                     if (isMethodAnnotation) {
                         rc = m.getAnnotation(PermissionLimit.class);
                         if (rc.name().equals("")){
-                            methodPermissionName += m.getName().toLowerCase();
+                            methodPermissionName = pc.value().toLowerCase() + "_" + m.getName();
                         }else {
-                            methodPermissionName += rc.name().toLowerCase();
+                            methodPermissionName = pc.value().toLowerCase() + "_" + rc.name();
                         }
                     }else {
                         return true;

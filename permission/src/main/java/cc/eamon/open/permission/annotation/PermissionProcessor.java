@@ -58,7 +58,8 @@ public class PermissionProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try{
-            HashMap<String, FieldSpec> nameSet = new HashMap<>();
+            HashMap<String, FieldSpec> fieldHashMap = new HashMap<>();
+            HashMap<String, String> methodNameHashMap = new HashMap<>();
             ClassName string = ClassName.get("java.lang", "String");
 
 
@@ -68,7 +69,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 }
 
                 Permission type = elem.getAnnotation(Permission.class);
-                String typeNames = type.value();
+                String typeName = type.value();
 
                 for(Element elemMethod: elem.getEnclosedElements()){
                     if (elemMethod.getKind() == ElementKind.METHOD){
@@ -77,11 +78,11 @@ public class PermissionProcessor extends AbstractProcessor {
                         String methodDetail;
 
                         if ((limit != null) && !limit.name().equals("")){
-                            methodName = typeNames.toUpperCase() + "_" + limit.name().toUpperCase();
-                            methodDetail = typeNames.toLowerCase() + "_" + limit.name().toLowerCase();
+                            methodName = typeName.toUpperCase() + "_" + limit.name().toUpperCase();
+                            methodDetail = typeName.toLowerCase() + "_" + limit.name();
                         }else {
-                            methodName = typeNames.toUpperCase() + "_" + elemMethod.getSimpleName().toString().toUpperCase();
-                            methodDetail = typeNames.toLowerCase() + "_" + elemMethod.getSimpleName().toString().toLowerCase();
+                            methodName = typeName.toUpperCase() + "_" + elemMethod.getSimpleName().toString().toUpperCase();
+                            methodDetail = typeName.toLowerCase() + "_" + elemMethod.getSimpleName().toString();
                         }
 
                         FieldSpec.Builder fieldBuilder = FieldSpec.builder(
@@ -92,15 +93,16 @@ public class PermissionProcessor extends AbstractProcessor {
                                 Modifier.FINAL)
                                 .initializer("$S", methodDetail);
 
-                        if (nameSet.get(methodName)!=null){
+                        if (fieldHashMap.get(methodName)!=null){
                             throw new ProcessingException(elem, "PermissionInit identifier can not be same @%s", Permission.class.getSimpleName());
                         }
-                        nameSet.put(methodName, fieldBuilder.build());
+                        methodNameHashMap.put(methodName, methodDetail);
+                        fieldHashMap.put(methodName, fieldBuilder.build());
                     }
                 }
             }
 
-            if (nameSet.size()>0){
+            if (fieldHashMap.size()>0){
                 String packageNameRoot = "cc.eamon.open.permission";
                 String packageNameMvc = "cc.eamon.open.permission.mvc";
 
@@ -138,14 +140,14 @@ public class PermissionProcessor extends AbstractProcessor {
 
                 HashMap<String, String> methodNames = new HashMap<>();
 
-                for(String key:nameSet.keySet())
+                for(String key:fieldHashMap.keySet())
                 {
                     System.out.println("Key: "+key);
                     //添加Value类的域
-                    typeSpecValue.addField(nameSet.get(key));
+                    typeSpecValue.addField(fieldHashMap.get(key));
 
                     //添加DefaultChecker的方法
-                    String mNameSplits[] = key.toLowerCase().split("_");
+                    String mNameSplits[] = methodNameHashMap.get(key).split("_");
                     StringBuilder methodNameBuilder = new StringBuilder("check");
                     //生成方法名
                     for (String mNameSplit:mNameSplits){
