@@ -4,14 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cc.eamon.open</groupId>
-    <artifactId>util</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0.0.Alpha1</version>
-
-    <name>util</name>
-    <url>http://eamon.cc</url>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-version>5.1.1.RELEASE</spring-version>
@@ -19,7 +11,18 @@
         <log4j-version>2.11.1</log4j-version>
         <junit-version>4.12</junit-version>
         <lombok-version>1.18.2</lombok-version>
+        <eamon-util-version>1.0.1</eamon-util-version>
     </properties>
+
+    <groupId>cc.eamon.open</groupId>
+    <artifactId>util</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.1</version>
+
+    <name>util</name>
+    <url>http://eamon.cc</url>
+
+
 
     <modules>
         <module>security</module>
@@ -109,7 +112,41 @@
             <!-- end of lombok -->
 
 
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>annotation</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
 
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>file</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>permission</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>security</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>status</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cc.eamon.open</groupId>
+                <artifactId>task</artifactId>
+                <version>${eamon-util-version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>util</artifactId>
         <groupId>cc.eamon.open</groupId>
-        <version>1.0.0.Alpha1</version>
+        <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,19 +15,14 @@
         <dependency>
             <groupId>cc.eamon.open</groupId>
             <artifactId>status</artifactId>
-            <version>1.0.0.Alpha1</version>
         </dependency>
 
-
         <!-- spring -->
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
         <!-- end of spring -->
-
-
 
         <!-- servlet -->
         <dependency>
