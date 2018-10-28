@@ -1,6 +1,6 @@
 # EamonUtils - Java Web
 
-[![License](https://img.shields.io/badge/license-Apache%202.0%20License-blue.svg)](https://github.com/ymxiong/util/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0%20License-blue.svg)](https://github.com/ymxiong/EamonUtils/blob/master/LICENSE)
 
 EamonUtils is a small library that simplifies your web development.
 
