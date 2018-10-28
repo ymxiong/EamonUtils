@@ -4,6 +4,7 @@ import cc.eamon.open.permission.PermissionInit;
 import cc.eamon.open.permission.mvc.PermissionChecker;
 import cc.eamon.open.status.StatusException;
 import com.squareup.javapoet.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -178,7 +179,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 typeSpecMvc.addMethod(checkRole.build());
 
                 //添加beforeCheckMethod至DefaultChecker
-                MethodSpec.Builder beforeCheckMethod = MethodSpec.methodBuilder("beforeCheck")
+                MethodSpec.Builder beforeCheckMethod = MethodSpec.methodBuilder("preCheck")
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
@@ -189,7 +190,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 beforeCheckMethod.addStatement("return true");
 
                 //添加afterCheckMethod至DefaultChecker
-                MethodSpec.Builder afterCheckMethod = MethodSpec.methodBuilder("afterCheck")
+                MethodSpec.Builder afterCheckMethod = MethodSpec.methodBuilder("postCheck")
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
@@ -199,6 +200,38 @@ public class PermissionProcessor extends AbstractProcessor {
                         .returns(TypeName.BOOLEAN);
                 afterCheckMethod.addStatement("return true");
 
+                //添加preHandle至DefaultChecker
+                MethodSpec.Builder preHandle = MethodSpec.methodBuilder("preHandle")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(Object.class, "handler")
+                        .addAnnotation(Override.class)
+                        .addException(Exception.class)
+                        .returns(TypeName.BOOLEAN);
+                preHandle.addStatement("return true");
+
+                //添加postHandle至DefaultChecker
+                MethodSpec.Builder postHandle = MethodSpec.methodBuilder("postHandle")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(Object.class, "handler")
+                        .addParameter(ModelAndView.class, "modelAndView")
+                        .addAnnotation(Override.class)
+                        .addException(Exception.class)
+                        .returns(TypeName.VOID);
+
+                //添加afterCompletion至DefaultChecker
+                MethodSpec.Builder afterCompletion = MethodSpec.methodBuilder("afterCompletion")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(Object.class, "handler")
+                        .addParameter(Exception.class, "ex")
+                        .addAnnotation(Override.class)
+                        .addException(Exception.class)
+                        .returns(TypeName.VOID);
 
                 //添加checkMethod至DefaultChecker
                 MethodSpec.Builder checkMethod = MethodSpec.methodBuilder("check")
@@ -211,7 +244,7 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addException(StatusException.class)
                         .returns(TypeName.BOOLEAN);
 
-                checkMethod.beginControlFlow("if (!beforeCheck(request, response, methodName, roleLimit))");
+                checkMethod.beginControlFlow("if (!preCheck(request, response, methodName, roleLimit))");
                 checkMethod.addStatement("return false");
                 checkMethod.endControlFlow();
 
@@ -236,11 +269,14 @@ public class PermissionProcessor extends AbstractProcessor {
                 }
                 checkMethod.addStatement("default: break");
                 checkMethod.endControlFlow();
-                checkMethod.beginControlFlow("if (!afterCheck(request, response, methodName, roleLimit))");
+                checkMethod.beginControlFlow("if (!postCheck(request, response, methodName, roleLimit))");
                 checkMethod.addStatement("return false");
                 checkMethod.endControlFlow();
                 checkMethod.addStatement("return true");
 
+                typeSpecMvc.addMethod(preHandle.build());
+                typeSpecMvc.addMethod(postHandle.build());
+                typeSpecMvc.addMethod(afterCompletion.build());
                 typeSpecMvc.addMethod(beforeCheckMethod.build());
                 typeSpecMvc.addMethod(afterCheckMethod.build());
                 typeSpecMvc.addMethod(checkMethod.build());

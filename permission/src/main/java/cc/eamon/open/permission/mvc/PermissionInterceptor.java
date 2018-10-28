@@ -36,17 +36,18 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest req, HttpServletResponse resp, Object handler) throws Exception {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-        resp.addHeader("Access-Control-Allow-Methods", "*");
-        resp.addHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-File-Name");
-        return roleControl(req, resp, handler);
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if (checker.preHandle(request,response,handler)){
+            return permissionControl(request, response, handler);
+        }else{
+            return false;
+        }
     }
 
     /**
      * 角色权限控制访问
      */
-    private boolean roleControl(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    private boolean permissionControl(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (handler instanceof HandlerMethod) {
             HandlerMethod hm = (HandlerMethod) handler;
             // Object target = hm.getBean();
@@ -112,15 +113,15 @@ public class PermissionInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) throws Exception {
-        // TODO Auto-generated method stub
-
+        checker.postHandle(request, response, handler, modelAndView);
     }
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
             throws Exception {
-        // TODO Auto-generated method stub
-
+        checker.afterCompletion(request, response, handler, ex);
     }
+
+
 
 }
