@@ -80,9 +80,11 @@ public class PermissionProcessor extends AbstractProcessor {
                         if ((limit != null) && !limit.name().equals("")){
                             methodName = typeName.toUpperCase() + "_" + limit.name().toUpperCase();
                             methodDetail = typeName.toLowerCase() + "_" + limit.name();
-                        }else {
+                        }else if ((limit != null) && limit.name().equals("")){
                             methodName = typeName.toUpperCase() + "_" + elemMethod.getSimpleName().toString().toUpperCase();
                             methodDetail = typeName.toLowerCase() + "_" + elemMethod.getSimpleName().toString();
+                        }else {
+                            continue;
                         }
 
                         FieldSpec.Builder fieldBuilder = FieldSpec.builder(
