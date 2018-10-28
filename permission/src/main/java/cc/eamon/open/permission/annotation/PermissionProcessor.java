@@ -28,7 +28,8 @@ public class PermissionProcessor extends AbstractProcessor {
     private Filer filer;
     private Messager messager;
 
-    public PermissionProcessor() {}
+    public PermissionProcessor() {
+    }
 
 
     @Override
@@ -49,7 +50,6 @@ public class PermissionProcessor extends AbstractProcessor {
     }
 
 
-
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
@@ -57,33 +57,33 @@ public class PermissionProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try{
+        try {
             HashMap<String, FieldSpec> fieldHashMap = new HashMap<>();
             HashMap<String, String> methodNameHashMap = new HashMap<>();
             ClassName string = ClassName.get("java.lang", "String");
 
 
             for (Element elem : roundEnv.getElementsAnnotatedWith(Permission.class)) {
-                if (elem.getKind() != ElementKind.CLASS){
+                if (elem.getKind() != ElementKind.CLASS) {
                     return true;
                 }
 
                 Permission type = elem.getAnnotation(Permission.class);
                 String typeName = type.value();
 
-                for(Element elemMethod: elem.getEnclosedElements()){
-                    if (elemMethod.getKind() == ElementKind.METHOD){
+                for (Element elemMethod : elem.getEnclosedElements()) {
+                    if (elemMethod.getKind() == ElementKind.METHOD) {
                         PermissionLimit limit = elemMethod.getAnnotation(PermissionLimit.class);
                         String methodName;
                         String methodDetail;
 
-                        if ((limit != null) && !limit.name().equals("")){
+                        if ((limit != null) && !limit.name().equals("")) {
                             methodName = typeName.toUpperCase() + "_" + limit.name().toUpperCase();
                             methodDetail = typeName.toLowerCase() + "_" + limit.name();
-                        }else if ((limit != null) && limit.name().equals("")){
+                        } else if ((limit != null) && limit.name().equals("")) {
                             methodName = typeName.toUpperCase() + "_" + elemMethod.getSimpleName().toString().toUpperCase();
                             methodDetail = typeName.toLowerCase() + "_" + elemMethod.getSimpleName().toString();
-                        }else {
+                        } else {
                             continue;
                         }
 
@@ -95,7 +95,7 @@ public class PermissionProcessor extends AbstractProcessor {
                                 Modifier.FINAL)
                                 .initializer("$S", methodDetail);
 
-                        if (fieldHashMap.get(methodName)!=null){
+                        if (fieldHashMap.get(methodName) != null) {
                             throw new ProcessingException(elem, "PermissionInit identifier can not be same @%s", Permission.class.getSimpleName());
                         }
                         methodNameHashMap.put(methodName, methodDetail);
@@ -104,7 +104,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 }
             }
 
-            if (fieldHashMap.size()>0){
+            if (fieldHashMap.size() > 0) {
                 String packageNameRoot = "cc.eamon.open.permission";
                 String packageNameMvc = "cc.eamon.open.permission.mvc";
 
@@ -116,7 +116,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 TypeSpec.Builder typeSpecRole = TypeSpec.classBuilder(classNameRole)
                         .addModifiers(Modifier.PUBLIC);
 
-                for (String key:PermissionInit.getNameToPermissionMap().keySet()){
+                for (String key : PermissionInit.getNameToPermissionMap().keySet()) {
                     FieldSpec.Builder fieldBuilder = FieldSpec.builder(
                             string,
                             key,
@@ -142,9 +142,8 @@ public class PermissionProcessor extends AbstractProcessor {
 
                 HashMap<String, String> methodNames = new HashMap<>();
 
-                for(String key:fieldHashMap.keySet())
-                {
-                    System.out.println("Key: "+key);
+                for (String key : fieldHashMap.keySet()) {
+                    System.out.println("Key: " + key);
                     //添加Value类的域
                     typeSpecValue.addField(fieldHashMap.get(key));
 
@@ -152,7 +151,7 @@ public class PermissionProcessor extends AbstractProcessor {
                     String mNameSplits[] = methodNameHashMap.get(key).split("_");
                     StringBuilder methodNameBuilder = new StringBuilder("check");
                     //生成方法名
-                    for (String mNameSplit:mNameSplits){
+                    for (String mNameSplit : mNameSplits) {
                         methodNameBuilder.append(mNameSplit.substring(0, 1).toUpperCase()).append(mNameSplit.substring(1));
                     }
                     String methodName = methodNameBuilder.toString();
@@ -171,23 +170,50 @@ public class PermissionProcessor extends AbstractProcessor {
                 MethodSpec.Builder checkRole = MethodSpec.methodBuilder("checkRole")
                         .addModifiers(Modifier.PUBLIC)
                         .addModifiers(Modifier.ABSTRACT)
-                        .addParameter(httpServletRequest,"request")
+                        .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
                         .addParameter(string, "roleLimit")
                         .addException(StatusException.class)
                         .returns(TypeName.BOOLEAN);
                 typeSpecMvc.addMethod(checkRole.build());
 
+                //添加beforeCheckMethod至DefaultChecker
+                MethodSpec.Builder beforeCheckMethod = MethodSpec.methodBuilder("beforeCheck")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(string, "methodName")
+                        .addParameter(string, "roleLimit")
+                        .addException(StatusException.class)
+                        .returns(TypeName.BOOLEAN);
+                beforeCheckMethod.addStatement("return true");
+
+                //添加afterCheckMethod至DefaultChecker
+                MethodSpec.Builder afterCheckMethod = MethodSpec.methodBuilder("afterCheck")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(string, "methodName")
+                        .addParameter(string, "roleLimit")
+                        .addException(StatusException.class)
+                        .returns(TypeName.BOOLEAN);
+                afterCheckMethod.addStatement("return true");
+
+
                 //添加checkMethod至DefaultChecker
                 MethodSpec.Builder checkMethod = MethodSpec.methodBuilder("check")
                         .addModifiers(Modifier.PUBLIC)
-                        .addParameter(httpServletRequest,"request")
+                        .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
-                        .addParameter(string,"methodName")
+                        .addParameter(string, "methodName")
                         .addParameter(string, "roleLimit")
                         .addAnnotation(Override.class)
                         .addException(StatusException.class)
                         .returns(TypeName.BOOLEAN);
+
+                checkMethod.beginControlFlow("if (!beforeCheck(request, response, methodName, roleLimit))");
+                checkMethod.addStatement("return false");
+                checkMethod.endControlFlow();
 
                 checkMethod.beginControlFlow("if (!checkRole(request, response, roleLimit))");
                 checkMethod.addStatement("return false");
@@ -195,28 +221,33 @@ public class PermissionProcessor extends AbstractProcessor {
 
                 checkMethod.beginControlFlow("switch (methodName)");
                 //添加具体方法
-                for(String key:methodNames.keySet()){
+                for (String key : methodNames.keySet()) {
                     //添加方法
                     MethodSpec.Builder checkMethodDetail = MethodSpec.methodBuilder(methodNames.get(key))
                             .addModifiers(Modifier.PUBLIC)
-                            .addParameter(httpServletRequest,"request")
+                            .addParameter(httpServletRequest, "request")
                             .addParameter(httpServletResponse, "response")
                             .addException(StatusException.class)
                             .returns(TypeName.BOOLEAN);
                     checkMethodDetail.addStatement("return true");
                     typeSpecMvc.addMethod(checkMethodDetail.build());
 
-                    checkMethod.addStatement("case $T."+ key +": return " + methodNames.get(key) + "(request, response)", permissionValue);
+                    checkMethod.addStatement("case $T." + key + ": return " + methodNames.get(key) + "(request, response)", permissionValue);
                 }
                 checkMethod.addStatement("default: break");
                 checkMethod.endControlFlow();
+                checkMethod.beginControlFlow("if (!afterCheck(request, response, methodName, roleLimit))");
+                checkMethod.addStatement("return false");
+                checkMethod.endControlFlow();
                 checkMethod.addStatement("return true");
 
+                typeSpecMvc.addMethod(beforeCheckMethod.build());
+                typeSpecMvc.addMethod(afterCheckMethod.build());
                 typeSpecMvc.addMethod(checkMethod.build());
                 JavaFile.builder(packageNameMvc, typeSpecMvc.build()).build().writeTo(filer);
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.toString());
         }
 
