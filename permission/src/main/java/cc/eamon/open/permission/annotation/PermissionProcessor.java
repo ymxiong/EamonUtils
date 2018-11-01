@@ -184,6 +184,15 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
 
+                //添加checkMethod函数至DefaultChecker
+                MethodSpec.Builder checkMethod = MethodSpec.methodBuilder("checkMethod")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(string, "methodName")
+                        .addException(Exception.class)
+                        .returns(TypeName.BOOLEAN);
+
 
                 //添加beforeCheckMethod至DefaultChecker
                 MethodSpec.Builder beforeCheckMethod = MethodSpec.methodBuilder("preCheck")
@@ -241,7 +250,7 @@ public class PermissionProcessor extends AbstractProcessor {
                         .returns(TypeName.VOID);
 
                 //添加checkMethod至DefaultChecker
-                MethodSpec.Builder checkMethod = MethodSpec.methodBuilder("check")
+                MethodSpec.Builder check = MethodSpec.methodBuilder("check")
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
@@ -251,13 +260,17 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
 
-                checkMethod.beginControlFlow("if (!preCheck(request, response, methodName, roleLimit))");
-                checkMethod.addStatement("return false");
-                checkMethod.endControlFlow();
+                check.beginControlFlow("if (!preCheck(request, response, methodName, roleLimit))");
+                check.addStatement("return false");
+                check.endControlFlow();
 
-                checkMethod.beginControlFlow("if (!checkRole(request, response, roleLimit))");
-                checkMethod.addStatement("return false");
-                checkMethod.endControlFlow();
+                check.beginControlFlow("if (!checkRole(request, response, roleLimit))");
+                check.addStatement("return false");
+                check.endControlFlow();
+
+                check.beginControlFlow("if (!checkMethod(request, response, methodName))");
+                check.addStatement("return false");
+                check.endControlFlow();
 
                 checkMethod.beginControlFlow("switch (methodName)");
                 //添加具体方法
@@ -277,19 +290,22 @@ public class PermissionProcessor extends AbstractProcessor {
                 }
                 checkMethod.addStatement("default: break");
                 checkMethod.endControlFlow();
-                checkMethod.beginControlFlow("if (!postCheck(request, response, methodName, roleLimit))");
                 checkMethod.addStatement("return false");
-                checkMethod.endControlFlow();
-                checkMethod.addStatement("return true");
+
+                check.beginControlFlow("if (!postCheck(request, response, methodName, roleLimit))");
+                check.addStatement("return false");
+                check.endControlFlow();
+                check.addStatement("return true");
 
                 typeSpecMvc.addMethod(handleException.build());
                 typeSpecMvc.addMethod(checkRole.build());
+                typeSpecMvc.addMethod(checkMethod.build());
                 typeSpecMvc.addMethod(preHandle.build());
                 typeSpecMvc.addMethod(postHandle.build());
                 typeSpecMvc.addMethod(afterCompletion.build());
                 typeSpecMvc.addMethod(beforeCheckMethod.build());
                 typeSpecMvc.addMethod(afterCheckMethod.build());
-                typeSpecMvc.addMethod(checkMethod.build());
+                typeSpecMvc.addMethod(check.build());
                 JavaFile.builder(packageNameMvc, typeSpecMvc.build()).build().writeTo(filer);
             }
 
