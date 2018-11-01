@@ -1,8 +1,6 @@
 package cc.eamon.open.permission.annotation;
 
 import cc.eamon.open.permission.PermissionInit;
-import cc.eamon.open.permission.mvc.PermissionChecker;
-import cc.eamon.open.status.StatusException;
 import com.squareup.javapoet.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,7 +17,7 @@ import java.util.*;
  */
 @SupportedAnnotationTypes(
         {
-                "cc.eamon.open.permission.annotation.PermissionInit"
+                "cc.eamon.open.permission.annotation.Permission"
         }
 )
 public class PermissionProcessor extends AbstractProcessor {
@@ -167,6 +165,15 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addModifiers(Modifier.PUBLIC)
                         .addModifiers(Modifier.ABSTRACT);
 
+                //添加handleMethod函数至DefaultChecker
+                MethodSpec.Builder handleException = MethodSpec.methodBuilder("handleException")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(httpServletResponse, "response")
+                        .addParameter(Exception.class, "ex")
+                        .returns(Object.class);
+                handleException.addStatement("return null");
+
+
                 //添加checkRole函数至DefaultChecker
                 MethodSpec.Builder checkRole = MethodSpec.methodBuilder("checkRole")
                         .addModifiers(Modifier.PUBLIC)
@@ -174,9 +181,9 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
                         .addParameter(string, "roleLimit")
-                        .addException(StatusException.class)
+                        .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
-                typeSpecMvc.addMethod(checkRole.build());
+
 
                 //添加beforeCheckMethod至DefaultChecker
                 MethodSpec.Builder beforeCheckMethod = MethodSpec.methodBuilder("preCheck")
@@ -185,7 +192,7 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addParameter(httpServletResponse, "response")
                         .addParameter(string, "methodName")
                         .addParameter(string, "roleLimit")
-                        .addException(StatusException.class)
+                        .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
                 beforeCheckMethod.addStatement("return true");
 
@@ -196,7 +203,7 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addParameter(httpServletResponse, "response")
                         .addParameter(string, "methodName")
                         .addParameter(string, "roleLimit")
-                        .addException(StatusException.class)
+                        .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
                 afterCheckMethod.addStatement("return true");
 
@@ -241,7 +248,7 @@ public class PermissionProcessor extends AbstractProcessor {
                         .addParameter(string, "methodName")
                         .addParameter(string, "roleLimit")
                         .addAnnotation(Override.class)
-                        .addException(StatusException.class)
+                        .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
 
                 checkMethod.beginControlFlow("if (!preCheck(request, response, methodName, roleLimit))");
@@ -260,12 +267,13 @@ public class PermissionProcessor extends AbstractProcessor {
                             .addModifiers(Modifier.PUBLIC)
                             .addParameter(httpServletRequest, "request")
                             .addParameter(httpServletResponse, "response")
-                            .addException(StatusException.class)
+                            .addParameter(string, "method")
+                            .addException(Exception.class)
                             .returns(TypeName.BOOLEAN);
                     checkMethodDetail.addStatement("return true");
                     typeSpecMvc.addMethod(checkMethodDetail.build());
 
-                    checkMethod.addStatement("case $T." + key + ": return " + methodNames.get(key) + "(request, response)", permissionValue);
+                    checkMethod.addStatement("case $T." + key + ": return " + methodNames.get(key) + "(request, response, $T."+ key +")", permissionValue, permissionValue);
                 }
                 checkMethod.addStatement("default: break");
                 checkMethod.endControlFlow();
@@ -274,6 +282,8 @@ public class PermissionProcessor extends AbstractProcessor {
                 checkMethod.endControlFlow();
                 checkMethod.addStatement("return true");
 
+                typeSpecMvc.addMethod(handleException.build());
+                typeSpecMvc.addMethod(checkRole.build());
                 typeSpecMvc.addMethod(preHandle.build());
                 typeSpecMvc.addMethod(postHandle.build());
                 typeSpecMvc.addMethod(afterCompletion.build());

@@ -12,10 +12,6 @@
     <artifactId>permission</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>cc.eamon.open</groupId>
-            <artifactId>status</artifactId>
-        </dependency>
 
         <!-- spring -->
         <dependency>

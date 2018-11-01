@@ -11,9 +11,6 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import cc.eamon.open.status.Status;
-import cc.eamon.open.status.StatusCode;
-
 
 /**
  * @author Eamon
@@ -88,24 +85,19 @@ public class PermissionInterceptor implements HandlerInterceptor {
             } catch (Exception e) {
                 response.setCharacterEncoding("utf-8");
                 response.setContentType("application/json; charset=utf-8");
+                response.setStatus(500);
                 try {
-                    response.getWriter().write(
-                            new Status(false,
-                                    StatusCode.getCode("PERMISSION_LOW"),
-                                    0,
-                                    0).toJson());
-
-
+                    Object o = checker.handleException(response, e);
+                    if (o != null){
+                        response.getWriter().write(o.toString());
+                    }
+                    return false;
                 } catch (IOException e1) {
                     e1.printStackTrace();
-                    response.setStatus(StatusCode.getCode("PERMISSION_LOW"));
                     return false;
                 }
-                response.setStatus(StatusCode.getCode("PERMISSION_LOW"));
-                return false;
             }
         }
-
         return true;
 
     }
