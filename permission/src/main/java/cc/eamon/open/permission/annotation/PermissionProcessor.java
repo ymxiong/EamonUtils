@@ -61,7 +61,6 @@ public class PermissionProcessor extends AbstractProcessor {
             HashMap<String, String> methodNameHashMap = new HashMap<>();
             ClassName string = ClassName.get("java.lang", "String");
 
-
             for (Element elem : roundEnv.getElementsAnnotatedWith(Permission.class)) {
                 if (elem.getKind() != ElementKind.CLASS) {
                     return true;
@@ -177,12 +176,26 @@ public class PermissionProcessor extends AbstractProcessor {
                 //添加checkRole函数至DefaultChecker
                 MethodSpec.Builder checkRole = MethodSpec.methodBuilder("checkRole")
                         .addModifiers(Modifier.PUBLIC)
-                        .addModifiers(Modifier.ABSTRACT)
                         .addParameter(httpServletRequest, "request")
                         .addParameter(httpServletResponse, "response")
                         .addParameter(string, "roleLimit")
                         .addException(Exception.class)
                         .returns(TypeName.BOOLEAN);
+
+                checkRole.addStatement("if(roleLimit.equals(\"\")) return true");
+                checkRole.addStatement("String[] roles = checkRequestRoles(request, response)");
+                checkRole.addStatement("for(String role:roles) if ($T.checkRolePermission(roleLimit, role)) return true", PermissionInit.class);
+                checkRole.addStatement("return false");
+
+                //添加requestRole函数至DefaultChecker
+                MethodSpec.Builder checkRequestRole = MethodSpec.methodBuilder("checkRequestRoles")
+                        .addModifiers(Modifier.PUBLIC)
+                        .addModifiers(Modifier.ABSTRACT)
+                        .addParameter(httpServletRequest, "request")
+                        .addParameter(httpServletResponse, "response")
+                        .addException(Exception.class)
+                        .returns(String[].class);
+
 
                 //添加checkMethod函数至DefaultChecker
                 MethodSpec.Builder checkMethod = MethodSpec.methodBuilder("checkMethod")
@@ -298,6 +311,7 @@ public class PermissionProcessor extends AbstractProcessor {
                 check.addStatement("return true");
 
                 typeSpecMvc.addMethod(handleException.build());
+                typeSpecMvc.addMethod(checkRequestRole.build());
                 typeSpecMvc.addMethod(checkRole.build());
                 typeSpecMvc.addMethod(checkMethod.build());
                 typeSpecMvc.addMethod(preHandle.build());

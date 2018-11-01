@@ -41,8 +41,8 @@ public class PermissionInit {
         }
     }
 
-    public static boolean checkRolePermission(String pName, String role) {
-        PermissionInit permission = nameToPermissionMap.get(pName);
+    public static boolean checkRolePermission(String name, String role) {
+        PermissionInit permission = nameToPermissionMap.get(name.toUpperCase());
         if (permission == null) return false;
         if (permission.roles.contains(role.trim()))
             return true;
