@@ -20,14 +20,14 @@ import java.util.*;
                 "cc.eamon.open.permission.annotation.Permission"
         }
 )
-public class PermissionProcessor extends AbstractProcessor {
+public class PermissionProcessor1 extends AbstractProcessor {
 
     private Types typeUtils;
     private Elements elementUtils;
     private Filer filer;
     private Messager messager;
 
-    public PermissionProcessor() {
+    public PermissionProcessor1() {
     }
 
 
