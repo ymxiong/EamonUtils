@@ -85,7 +85,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
             } catch (Exception e) {
                 response.setCharacterEncoding("utf-8");
                 response.setContentType("application/json; charset=utf-8");
-                response.setStatus(500);
+                response.setStatus(200);
                 try {
                     Object o = checker.handleException(response, e);
                     if (o != null){

@@ -14,6 +14,8 @@ public class PermissionInit {
 
     private HashSet<String> roles = new HashSet<>();
 
+    private static HashSet<String> roleSet = new HashSet<>();
+
     private static HashMap<String, PermissionInit> nameToPermissionMap = new HashMap<>();
 
     static {
@@ -32,7 +34,8 @@ public class PermissionInit {
             prop.stringPropertyNames().forEach((e) -> {
                 PermissionInit permission = new PermissionInit();
                 permission.name = e.trim();
-                permission.roles.addAll(Arrays.asList(prop.getProperty(e).trim().split(",")));
+                permission.roles.addAll(Arrays.asList(prop.getProperty(e).replaceAll(" ","").replaceAll("\t","").trim().split(",")));
+                roleSet.addAll(Arrays.asList(prop.getProperty(e).trim().split(",")));
                 nameToPermissionMap.put(permission.name, permission);
             });
         } catch (Exception e) {
@@ -52,5 +55,7 @@ public class PermissionInit {
     public static HashMap<String, PermissionInit> getNameToPermissionMap(){
         return nameToPermissionMap;
     }
+
+    public static HashSet<String> getRoleSet() { return roleSet; }
 
 }
