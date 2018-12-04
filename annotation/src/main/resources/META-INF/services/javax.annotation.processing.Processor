@@ -1,2 +1,3 @@
 cc.eamon.open.annotation.common.mapper.MapperProcessor
+cc.eamon.open.annotation.common.group.GroupProcessor
 cc.eamon.open.annotation.design.factory.FactoryProcessor

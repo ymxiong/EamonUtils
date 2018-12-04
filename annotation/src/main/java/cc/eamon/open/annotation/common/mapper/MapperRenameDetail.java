@@ -15,7 +15,7 @@ public class MapperRenameDetail {
 
     public void addValue(RenameDetail value){
         if (value == null) return;
-        target.put(value.getOriginMapName(), value);
+        target.put(value.getTargetMapName(), value);
     }
 
     public RenameDetail getValue(String value){
@@ -43,24 +43,24 @@ public class MapperRenameDetail {
 
     public static class RenameDetail {
 
-        private String originMapName;
+        private String targetMapName;
 
-        private String renameMapName;
+        private String renameName;
 
-        public String getOriginMapName() {
-            return originMapName;
+        public String getTargetMapName() {
+            return targetMapName;
         }
 
-        public void setOriginMapName(String originMapName) {
-            this.originMapName = originMapName;
+        public void setTargetMapName(String targetMapName) {
+            this.targetMapName = targetMapName;
         }
 
-        public String getRenameMapName() {
-            return renameMapName;
+        public String getRenameName() {
+            return renameName;
         }
 
-        public void setRenameMapName(String renameMapName) {
-            this.renameMapName = renameMapName;
+        public void setRenameName(String renameName) {
+            this.renameName = renameName;
         }
     }
 

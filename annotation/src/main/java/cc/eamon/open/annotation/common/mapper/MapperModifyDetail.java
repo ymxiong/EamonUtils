@@ -1,6 +1,7 @@
 package cc.eamon.open.annotation.common.mapper;
 
 
+import javax.lang.model.type.TypeMirror;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,7 +48,11 @@ public class MapperModifyDetail {
 
         private String targetMapName;
 
-        private String methodName;
+        private String modifyName;
+
+        private String recoverName;
+
+        private TypeMirror recoverType;
 
         public String getTargetMapName() {
             return targetMapName;
@@ -57,13 +62,17 @@ public class MapperModifyDetail {
             this.targetMapName = targetMapName;
         }
 
-        public String getMethodName() {
-            return methodName;
-        }
+        public String getModifyName() { return modifyName; }
 
-        public void setMethodName(String methodName) {
-            this.methodName = methodName;
-        }
+        public void setModifyName(String modifyName) { this.modifyName = modifyName; }
+
+        public String getRecoverName() { return recoverName; }
+
+        public void setRecoverName(String recoverName) { this.recoverName = recoverName;}
+
+        public TypeMirror getRecoverType() { return recoverType; }
+
+        public void setRecoverType(TypeMirror recoverType) { this.recoverType = recoverType; }
     }
 
 }

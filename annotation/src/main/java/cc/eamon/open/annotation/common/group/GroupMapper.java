@@ -1,6 +1,4 @@
-package cc.eamon.open.annotation.common.mapper;
-
-import cc.eamon.open.annotation.common.AccessLevel;
+package cc.eamon.open.annotation.common.group;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,13 +8,17 @@ import java.lang.annotation.Target;
 /**
  * Created by Eamon on 2018/9/29.
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
-public @interface MapperModify {
+public @interface GroupMapper {
+
+    boolean[] base() default {};
+
+    boolean[] list() default {};
 
     String[] value() default {};
 
-    String[] modify() default {};
+    String[] name() default {};
 
-    String[] recover() default {};
+    String[] target() default {};
 }
