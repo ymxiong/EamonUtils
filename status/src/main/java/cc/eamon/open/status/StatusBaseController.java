@@ -21,8 +21,9 @@ public abstract class StatusBaseController {
         if (e instanceof StatusException){
             return StatusException.procExcp(e);
         }
+        e.printStackTrace();
         log.error(e.getMessage());
-        return new Status(false, 500, "Server Error", "Reading Log For Details");
+        return new Status(false, 500, "Server Error", e.getMessage());
     }
 
 
